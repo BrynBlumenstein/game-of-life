@@ -1,2 +1,2 @@
 # game-of-life
-A simple web application implementing The Game of Life
+A simple web application implementing the Game of Life
