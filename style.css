@@ -1,0 +1,10 @@
+.cell {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.live {
+    background-color: #333;
+}
