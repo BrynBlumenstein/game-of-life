@@ -14,12 +14,21 @@
 	<body>
 		<header><h1>Game of Life</h1></header>
 		<main>
-            <div id="grid" class="grid">
-                <div class="cell"></div>
-                <div class="cell live"></div>
-            </div>
-            <button id="start">Start</button>
-        </main>
+			<div id="game" class="game">
+				<div id="controls" class="controls">
+					<button id="start">Start</button>
+					<button id="stop" disabled>Stop</button>
+					<button id="clear">Clear</button>
+				</div>
+				<div id="info" class="info">
+					<p>Population: <span id="population"></span></p>
+					<p>Generation: <span id="generation"></span></p>
+				</div>
+				<div id="grid-wrapper" class="grid-wrapper">
+					<div id="grid" class="grid"></div>
+				</div>
+			</div>
+		</main>
 		<footer><p>&copy;&nbsp;2025 Bryn Blumenstein</p></footer>
 		<script type="module" src="./js/main.js"></script>
 	</body>

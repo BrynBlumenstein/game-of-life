@@ -1,19 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
-	const DEFAULT_CELL_SIZE = 40;
-	const DEFAULT_GRID_SIZE = 10;
+	const DEFAULT_CELL_SIZE = 20; // 20px
+	const DEFAULT_GRID_SIZE = 40; // 40x40 cells
+	const DEFAULT_UPDATE_DELAY = 100; // 100ms
 	const DEAD = 0;
 	const LIVE = 1;
 
-	const startButton = document.getElementById('start');
 	const gridContainer = document.getElementById('grid');
-	const cellElements = [];
-	let grid = createGrid();
-	let gridSize = DEFAULT_GRID_SIZE;
-	renderGridUI();
+	const populationSpan = document.getElementById('population');
+	const generationSpan = document.getElementById('generation');
+	const startButton = document.getElementById('start');
+	const stopButton = document.getElementById('stop');
+	const clearButton = document.getElementById('clear');
 
-	startButton.addEventListener('click', () => {
-		startLife();
-	});
+	let gridSize = DEFAULT_GRID_SIZE;
+	let updateDelay = DEFAULT_UPDATE_DELAY;
+	let grid = createGrid();
+	let population = 0;
+	let generation = 0;
+	let intervalId = null;
+
+	renderUI();
+
+	startButton.addEventListener('click', start);
+
+	stopButton.addEventListener('click', stop);
+
+	clearButton.addEventListener('click', clear);
 
 	function createGrid() {
 		return [...Array(DEFAULT_GRID_SIZE)].map(() => {
@@ -21,55 +33,103 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
-	function renderGridUI() {
+	function start() {
+		intervalId ??= setInterval(runGeneration, updateDelay);
+		startButton.disabled = true;
+		stopButton.disabled = false;
+	}
+
+	function stop() {
+		clearInterval(intervalId);
+		intervalId = null;
+		stopButton.disabled = true;
+		startButton.disabled = false;
+	}
+
+	function clear() {
+		stop();
+		grid = createGrid();
+		population = 0;
+		generation = 0;
+		renderUI();
+	}
+
+	function renderUI() {
+		renderPopulation();
+		renderGeneration();
+		renderGrid();
+	}
+
+	function renderPopulation() {
+		populationSpan.textContent = population;
+	}
+
+	function renderGeneration() {
+		generationSpan.textContent = generation;
+	}
+
+	function renderGrid() {
 		gridContainer.innerHTML = '';
-		gridContainer.style.display = 'grid';
 		gridContainer.style.gridTemplateColumns = `repeat(${grid.length}, ${DEFAULT_CELL_SIZE}px)`;
+
 		for (let row = 0; row < grid.length; row++) {
-			const rowCells = [];
 			for (let col = 0; col < grid[row].length; col++) {
 				const cell = document.createElement('div');
 				cell.classList.add('cell');
 				cell.style.width = `${DEFAULT_CELL_SIZE}px`;
 				cell.style.height = `${DEFAULT_CELL_SIZE}px`;
-                if (grid[row][col] === LIVE) {
-                    cell.classList.add('live');
-                }
-				cell.addEventListener('click', () => {
-					grid[row][col] = grid[row][col] === DEAD ? LIVE : DEAD;
-					cell.classList.toggle('live');
-				});
+
+				if (grid[row][col] === LIVE) {
+					cell.classList.add('live');
+				}
+
+				cell.addEventListener('click', () =>
+					handleCellClick(cell, row, col)
+				);
+
 				gridContainer.appendChild(cell);
-				rowCells.push(cell);
 			}
-			cellElements.push(rowCells);
 		}
 	}
 
-	function startLife() {
-		const interval = setInterval(() => {
-			const newGrid = grid.map((row) => row.slice());
+	function handleCellClick(cell, row, col) {
+		if (grid[row][col] === DEAD) {
+			grid[row][col] = LIVE;
+			population++;
+		} else {
+			grid[row][col] = DEAD;
+			population--;
+		}
 
-			for (let row = 0; row < gridSize; row++) {
-				for (let col = 0; col < gridSize; col++) {
-					const neighbors = getNeighborCount(row, col);
+		cell.classList.toggle('live');
+		renderPopulation();
+	}
 
-					if (grid[row][col] === DEAD && neighbors === 3) {
-						newGrid[row][col] = LIVE;
-					}
+	function runGeneration() {
+		const newGrid = grid.map((row) => row.slice());
 
-					if (
-						grid[row][col] === LIVE &&
-						(neighbors <= 1 || neighbors >= 4)
-					) {
-						newGrid[row][col] = DEAD;
-					}
+		for (let row = 0; row < gridSize; row++) {
+			for (let col = 0; col < gridSize; col++) {
+				const neighbors = getNeighborCount(row, col);
+
+				if (grid[row][col] === DEAD && neighbors === 3) {
+					newGrid[row][col] = LIVE;
+					population++;
+				}
+
+				if (
+					grid[row][col] === LIVE &&
+					(neighbors <= 1 || neighbors >= 4)
+				) {
+					newGrid[row][col] = DEAD;
+					population--;
 				}
 			}
+		}
 
-			grid = newGrid;
-			renderGridUI();
-		}, 2000);
+		grid = newGrid;
+		generation++;
+		renderUI();
 	}
 
 	function getNeighborCount(row, col) {
